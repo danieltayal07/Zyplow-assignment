@@ -82,7 +82,7 @@ To set up and run the application, follow these steps:
     npm run dev
     ```
 
-    This will start the Next.js development server. Open your browser and navigate to `http://localhost:3000` to view the application.
+    This will start the Next.js development server. Open your browser and navigate to `http://localhost:3000` to view the application server side and `http://localhost:3000/client` to view the application client side.
 
 ## Performance Benchmarking
 

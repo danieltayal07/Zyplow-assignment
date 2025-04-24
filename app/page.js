@@ -1,24 +1,37 @@
-import redisClient from '../lib/redis';
+import { getRedisClient } from '../lib/redis'; 
+
+const POSTS_URL = 'https://dummyjson.com/posts';
+const CACHE_KEY = 'posts';
+const CACHE_TTL = 60;
 
 async function getPosts() {
-  const cached = await redisClient.get('posts');
+  try {
+    const redis = await getRedisClient();
+    const cached = await redis.get(CACHE_KEY);
 
-  if (cached) {
-    console.log('✅ Pulled from Redis cache!');
-    return JSON.parse(cached);
+    if (cached) {
+      console.log('✅ Pulled from Redis cache!');
+      return JSON.parse(cached);
+    }
+
+    console.log('⏳ Fetching fresh data from API...');
+    const res = await fetch(POSTS_URL);
+    const data = await res.json();
+
+    await redis.setEx(CACHE_KEY, CACHE_TTL, JSON.stringify(data.posts));
+    return data.posts; 
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    return { error: 'Failed to fetch posts' };
   }
-
-  console.log('⏳ Fetching fresh data from API... this might take a sec!');
-  const res = await fetch('https://dummyjson.com/posts');
-  const data = await res.json();
-
-  await redisClient.setEx('posts', 3600, JSON.stringify(data.posts));
-
-  return data.posts;
 }
 
 export default async function Home() {
   const posts = await getPosts();
+
+    if (posts.error) {
+        return <div>Error: {posts.error}</div>;
+    }
 
   return (
     <div className="daddydiv">
